@@ -820,4 +820,5 @@ if __name__ == "__main__":
 ### lab14-magicheap
 
 ### lab15-zoo
+[pwn in C++](https://github.com/M4xW4n9/slides/blob/master/pwn_others/pwnincplusplus-160217120850.pdf)
 

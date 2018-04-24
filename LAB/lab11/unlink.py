@@ -10,6 +10,8 @@ context.log_level = "debug"
 context.terminal = ["deepin-terminal", "-x", "sh", "-c"]
 
 io = process("./bamboobox")
+# process("./bamboobox").libc will assign libc.address but ELF("./bamboobox") won't
+#  libc = io.libc
 elf = ELF("./bamboobox")
 libc = elf.libc
 

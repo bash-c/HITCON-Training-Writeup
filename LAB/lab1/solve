@@ -1,0 +1,5 @@
+b *get_flag+389
+r
+#your input
+set $eax=$edx
+c

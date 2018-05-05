@@ -88,7 +88,13 @@ int del(){
 }
 
 void magic(){
-	system("/bin/sh");
+    int fd ;
+    char buffer[100];
+    fd = open("/home/babysecretgarden/flag",O_RDONLY);
+    read(fd,buffer,sizeof(buffer));
+    close(fd);
+    printf("%s",buffer);
+    exit(0);
 }
 
 void clean(){

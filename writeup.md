@@ -4,7 +4,7 @@
 
 > 项目地址[M4x's github](https://github.com/M4xW4n9/HITCON-Training-Writeup)，欢迎star~
 
-> 更新时间4月24
+> 更新时间5月06
 
 复习一下二进制基础，写写HITCON-Training的writeup，题目地址：https://github.com/scwuaptx/HITCON-Training
 

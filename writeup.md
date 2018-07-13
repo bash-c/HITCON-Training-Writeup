@@ -2,11 +2,11 @@
 
 > 原文链接[M4x@10.0.0.55](http://www.cnblogs.com/WangAoBo/p/8570640.html)
 
-> 项目地址[M4x's github](https://github.com/M4xW4n9/HITCON-Training-Writeup)，欢迎star~
+> 项目地址[M4x's github](https://github.com/0x01f/HITCON-Training-Writeup)，欢迎 star~
 
 > 更新时间5月16
 
-复习一下二进制基础，写写HITCON-Training的writeup，题目地址：https://github.com/scwuaptx/HITCON-Training
+复习一下二进制基础，写写 HITCON-Training 的 writeup，题目地址：https://github.com/scwuaptx/HITCON-Training
 
 ## Outline
 
@@ -91,27 +91,27 @@
 
 ### lab1-sysmagic
 
-一个很简单的逆向题，看get\_flag函数的逻辑逆回来即可，直接逆向的方法就不说了
+一个很简单的逆向题，看 get\_flag 函数的逻辑逆回来即可，直接逆向的方法就不说了
 
-或者经过观察，flag的生成与输入无关，因此可以通过patch或者调试直接获得flag
+或者经过观察，flag 的生成与输入无关，因此可以通过 patch 或者调试直接获得 flag
 
 #### patch
 
 ![](http://ww1.sinaimg.cn/large/006AWYXBly1fpcpmdngq8j30ja047dg7.jpg)
 
-修改关键判断即可，patch后保存运行，输入任意值即可得flag
+修改关键判断即可，patch 后保存运行，输入任意值即可得 flag
 
 ![](http://ww1.sinaimg.cn/large/006AWYXBly1fpcpmkyf79j30ez03emxy.jpg)
 
 #### 调试
 
-通过观察汇编，我们只需使下图的cmp满足即可，可以通过gdb调试，在调试过程中手动满足该条件
+通过观察汇编，我们只需使下图的 cmp 满足即可，可以通过 gdb 调试，在调试过程中手动满足该条件
 
 ![](http://ww1.sinaimg.cn/large/006AWYXBly1fpcpngmh9cj30f904gdfx.jpg)
 
-直接写出gdb脚本
+直接写出 gdb 脚本
 
-```bash
+```shell
 lab1 [master●●] cat solve 
 b *get_flag+389
 r
@@ -121,15 +121,15 @@ c
 lab1 [master●●] 
 ```
 
-也可得到flag
+也可得到 flag
 
 ![](http://ww1.sinaimg.cn/large/006AWYXBly1fpcpmxbneij30qu0c5dll.jpg)
 
-同时注意，IDA对字符串的识别出了问题，修复方法可以参考inndy的[**ROP2**](http://www.cnblogs.com/WangAoBo/p/7706719.html)
+同时注意，IDA 对字符串的识别出了问题，修复方法可以参考 inndy 的 [**ROP2**](http://www.cnblogs.com/WangAoBo/p/7706719.html)
 
 ### lab2-orw.bin
 
-通过查看prctl的man手册发现该程序限制了一部分系统调用，根据题目的名字open,read,write以及IDA分析，很明显是要我们自己写读取并打印flag的shellcode了，偷个懒，直接调用shellcraft模块
+通过查看 prctl 的 man 手册发现该程序限制了一部分系统调用，根据题目的名字 open, read, write以及IDA分析，很明显是要我们自己写读取并打印 flag 的 shellcode 了，偷个懒，直接调用 shellcraft 模块
 
 ```python
 lab2 [master●●] cat solve.py 
@@ -155,11 +155,11 @@ io.close()
 lab2 [master●●] 
 ```
 
-该题与pwnable.tw的orw类似，那道题的writeup很多，因此就不说直接撸汇编的方法了
+该题与 pwnable.tw 的 orw 类似，那道题的 writeup 很多，因此就不说直接撸汇编的方法了
 
 ### lab3-ret2sc
 
-很简单的ret2shellcode，程序没有开启NX和canary保护，把shellcode存贮在name这个全局变量上，并ret到该地址即可
+很简单的 ret2shellcode，程序没有开启 NX 和 canary 保护，把 shellcode 存贮在 name 这个全局变量上，并 ret 到该地址即可
 
 ```python
 lab3 [master●●] cat solve.py 
@@ -183,7 +183,7 @@ io.close()
 lab3 [master●●] 
 ```
 
-需要注意的是，该程序中的read是通过esp寻址的，因此具体的offset可以通过调试查看
+需要注意的是，该程序中的 read 是通过 esp 寻址的，因此具体的 offset 可以通过调试查看
 
 ![](http://ww1.sinaimg.cn/large/006AWYXBly1fpcpljuki5j30g702wdfy.jpg)
 
@@ -193,7 +193,7 @@ lab3 [master●●]
 
 ### lab4-ret2lib
 
-ret2libc，并且程序中已经有了一个可以查看got表中值的函数See\_something，直接leak出libcBase，通过one\_gadget或者system("/bin/sh")都可以get shell，/bin/sh可以使用libc中的字符串，可以通过read读入到内存中，也可以使用binary中的字符串
+ret2libc，并且程序中已经有了一个可以查看 got 表中值的函数 See\_something，直接 leak 出 libcBase，通过 one\_gadget 或者 system("/bin/sh") 都可以 get shell，/bin/sh 可以使用 libc 中的字符串，可以通过 read 读入到内存中，也可以使用 binary 中的字符串
 
 ```python
 lab4 [master●●] cat solve.py 
@@ -231,7 +231,7 @@ lab4 [master●●]
 >
 > ROPgadget --binary ./simplerop --ropchain
 
-先看一下ropper生成的ropchain
+先看一下 ropper 生成的 ropchain
 
 ```python
 #!/usr/bin/env python
@@ -275,7 +275,7 @@ print rop
 
 简单介绍一下原理，通过一系列 pop|ret 等gadget，使得 eax = 0xb（execve 32 位下的系统调用号），ebx -> /bin/sh， ecx = edx = 0，然后通过 `int 0x80` 实现系统调用，执行 execve("/bin/sh", 0, 0)，hackme.inndy 上也有一道类似的题目[**ROP2**](http://www.cnblogs.com/WangAoBo/p/7706719.html#_label3)
 
-而当观察 ropper 等工具自动生成的 ropchain 时，会发现有很多步骤很繁琐的，可以做出很多优化，给一个优化后的例子
+而当观察 ropper 等工具自动生成的 ropchain 时，会发现有很多步骤是很繁琐的，可以做出很多优化，给一个优化后的例子
 
 ```python
 #!/usr/bin/env python
@@ -414,7 +414,7 @@ io.close()
       exit(1);
   ```
 
-  限制了我们只能利用一次main函数的溢出（直接控制main返回到exit后的话，程序的栈结构会乱掉）
+  限制了我们只能利用一次 main 函数的溢出（直接控制 main 返回到 exit 后的话，程序的栈结构会乱掉）
 
 所以我们就只能通过 20 个字节的 ropchain 来进行 rop 了，关于栈迁移（又称为 stack-pivot）可以看这个 [**slide**](https://github.com/M4xW4n9/slides/blob/master/pwn_stack/DEP%20%26%20ROP.pdf%0A)
 
@@ -473,15 +473,16 @@ io.interactive()
 io.close()
 ```
 
-稍微解释一下，先通过主函数中可以控制的20个字节将esp指针劫持到可控的bss段，然后就可以为所欲为了。
+稍微解释一下，先通过主函数中可以控制的 20个 字节将 esp 指针劫持到可控的 bss 段，然后就可以为所欲为了。
 
-关于stack-pivot，pwnable.kr的simple\_login是很经典的题目，放上一篇这道题的很不错的[**wp**](https://blog.csdn.net/yuanyunfeng3/article/details/51456049)
+关于 stack-pivot，pwnable.kr 的 simple\_login 是很经典的题目，放上一篇这道题的很不错的 [**wp**](https://blog.csdn.net/yuanyunfeng3/article/details/51456049)
 
-这个还有个问题，sendline会gg，send就可以，在atum大佬的[**博客**](http://atum.li/2016/09/20/ctf-strange/)上找到了原因
+这个还有个问题，sendline 会 gg，send 就可以，在 atum 大佬的 [**博客**](http://atum.li/2016/09/20/ctf-strange/) 上找到了原因
+另外不建议把迁移后的栈放在 bss 段开头, 因为 stdout, stdin, stderr 等结构体往往存储在这里, 破坏这些结构体很可能会引起输入输出的错误
 
 ### lab7-crack
 
-输出name时有明显的格式化字符串漏洞，这个题的思路有很多，可以利用fsb改写password，或者leak出password，也可以直接通过fsb，hijack puts\_got到system("cat flag")处（注意printf实际调用了puts）
+输出 name 时有明显的格式化字符串漏洞，这个题的思路有很多，可以利用 fsb 改写 password，或者 leak 出 password，也可以直接通过 fsb，hijack puts\_got 到 system("cat flag") 处（注意 printf 实际调用了 puts）
 
 ```python
 lab7 [master●●] cat hijack.py 
@@ -538,13 +539,13 @@ io.interactive()
 io.close()
 ```
 
-32位的binary可以直接使用pwntools封装好的**fmtstr\_payload**函数：
+32位的 binary 可以直接使用 pwntools 封装好的**fmtstr\_payload**函数：
 
 ![](http://ww1.sinaimg.cn/large/006AWYXBly1fq2zoc31gjj30om0p3jv2.jpg)
 
 ### lab8-craxme
 
-同样是32位的fsb，直接用fmtstr_payload就可以解决
+同样是32位的 fsb，直接用 fmtstr\_payload 就可以解决
 
 ```python
 lab8 [master●●] cat solve.py 
@@ -569,11 +570,11 @@ io.interactive()
 io.close()
 ```
 
-如果想要自己实现fmtstr\_payload功能，可以参考这篇[**文章**](https://paper.seebug.org/246/)
+如果想要自己实现 fmtstr\_payload 功能，可以参考这篇 [**文章**](https://paper.seebug.org/246/)
 
 ### lab9-playfmt
 
-和上一道题相比, lab9 的格式化字符串不在栈上,在全部变量(.bss)段, 因此我们就不能直接控制栈上的变量来进行修改got等行为,但可以通过控制
+和上一道题相比, lab9 的格式化字符串不在栈上,在全局变量 (.bss) 段, 因此我们就不能直接控制栈上的变量来进行修改 got 等行为,但可以通过控制
 ```assembly
 Breakpoint *do_fmt+64
 pwndbg> stack 25
@@ -612,7 +613,7 @@ pwndbg>
 
 ### lab10-hacknote
 
-最简单的一种uaf利用，结构体中有函数指针，通过uaf控制该函数指针指向magic函数即可，uaf的介绍可以看这个[**slide**](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/malloc-150821074656-lva1-app6891.pdf)
+最简单的一种 uaf 利用，结构体中有函数指针，通过 uaf 控制该函数指针指向 magic 函数即可，uaf 的介绍可以看这个 [**slide**](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/malloc-150821074656-lva1-app6891.pdf)
 
 exp:
 
@@ -667,19 +668,19 @@ if __name__ == "__main__":
     io.close()
 ```
 
-> 说一下怎么修复IDA中的结构体
+> 说一下怎么修复 IDA 中的结构体
 >
 > 识别出结构体的具体结构后
 >
-> - shift+F1, insert插入识别出的结果
+> - shift+F1, insert 插入识别出的结果
 >
 >   ![](http://ww1.sinaimg.cn/large/006AWYXBly1fq30oi6hn6j30qt0hgjsc.jpg)
 >
-> - shift+F9,insert导入我们刚添加的local type
+> - shift+F9, insert 导入我们刚添加的 local type
 >
 >   ![](http://ww1.sinaimg.cn/large/006AWYXBly1fq30podbi2j31490m8jwq.jpg)
 >
-> - 然后我们在结构体变量上y一下，制定其数据类型即可
+> - 然后我们在结构体变量上 y 一下，制定其数据类型即可
 >
 >   ![](http://ww1.sinaimg.cn/large/006AWYXBly1fq30qp97hyj30nn06zt9k.jpg)
 >
@@ -689,11 +690,11 @@ if __name__ == "__main__":
 
 ### lab11-bamboobox
 
-可以种house of force，也可以使用unlink，先说house of force的方法
+可以种 house of force，也可以使用 unlink，先说 house of force 的方法
 
 #### house of force
 
-简单说一下我对hof的理解，如果我们能控制**top_chunk**的**size**，那么我们就可以通过控制malloc一些精心设计的**大数/负数**来实现控制top_chunk的指针，就可以实现任意地址写的效果，个人感觉，hof的核心思想就在这个force上，疯狂malloc，简单粗暴效果明显
+简单说一下我对 hof 的理解，如果我们能控制 **top\_chunk** 的 **size**，那么我们就可以通过控制 malloc 一些精心设计的**大数/负数**来实现控制 top\_chunk 的指针，就可以实现任意地址写的效果，个人感觉，hof 的核心思想就在这个 force 上，疯狂 malloc，简单粗暴效果明显
 
 ```python
 lab11 [master●] cat hof.py 
@@ -741,11 +742,12 @@ if __name__ == "__main__":
     io.close()
 ```
 
+> 快速确定需要 malloc 的大数/负数可以使用 Pwngdb 的 force 功能, 这里我做了一个 [fork](https://github.com/0x01f/Pwngdb), 把 Pwngdb 和 pwndbg 的功能做了一个合并
 
 
 #### unlink
 
-至于unlink，在这个[slide](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/malloc-150821074656-lva1-app6891.pdf)中有较大篇幅的介绍，就不在说明原理了
+至于 unlink，在这个 [slide](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/malloc-150821074656-lva1-app6891.pdf)中有较大篇幅的介绍，就不在说明原理了
 
 ```python
 lab11 [master●] cat unlink.py 
@@ -817,11 +819,11 @@ if __name__ == "__main__":
     io.close()
 ```
 
-可以看出，通过house of house直接控制函数指针进而控制ip的方法代码量少了不少，这也提醒我们不要放弃利用任何一个函数指针的机会
+可以看出，通过 house of house 直接控制函数指针进而控制 ip 的方法代码量少了不少，这也提醒我们不要放弃利用任何一个函数指针的机会
 
 ### lab12-secretgarden
 
-double free的题目，所谓double free，指的就是对同一个allocated chunk free两次，这样就可以形成一个类似**0  -> 1 -> 0**的cycled bin list，这样当我们malloc出0时，就可以修改bin list中0的fd，如**1 -> 0 -> target**，这样只要我们再malloc三次，并通过malloc的检查，就可以实现malloc到任何地址，进而实现任意地址写，至于double free的检查怎么绕过可以看这个[slide](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/advanceheap-160113090848.pdf)
+通过 double free 实现 fastbin attack 的题目，所谓double free，指的就是对同一个 allocated chunk free 两次，这样就可以形成一个类似 **0  -> 1 -> 0** 的 cycled bin list，这样当我们 malloc 出 0 时，就可以修改 bin list 中 0 的 fd，如 **1 -> 0 -> target**，这样只要我们再 malloc 三次，并通过 malloc 的检查，就可以实现 malloc 到任何地址，进而实现任意地址写，至于 double free 的检查怎么绕过可以看这个[slide](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/advanceheap-160113090848.pdf)
 
 ```python
 #!/usr/bin/env python
@@ -875,13 +877,15 @@ if __name__ == "__main__":
 
 ```
 
+> 以上的 exp 实现了通过 fastbin attack 来修改 got, 实际上通过 fastbin attack 来修改 \_\_malloc\_hook, \_\_realloc\_hook, \_\_free\_hook, IO\_file\_plus 结构体中的 jump\_table 也是很常见的做法, 尤其是程序开了 Full Relro 保护时
+> pwnable.tw 的 Secret Garden 一题就用到了以上几种做法, 可以参考这篇 [writeup](http://tacxingxing.com/2018/02/20/pwnabletw-secretgarden/)
 
 
 ### lab13-heapcreator
 
-在edit\_heap中有一个故意留下来的off-by-one，并且不是off-by-one null byte，因此可以使用extended chunk这种技巧造成overlapping chunk，进而通过将\*content覆写为某函数的got(如free/atoi)就可以leak出libc的地址，然后将改写为system的地址，控制参数即可get shell
+在 edit\_heap 中有一个故意留下来的 off-by-one，并且不是 off-by-one null byte，因此可以使用 extended chunk 这种技巧造成 overlapping chunk，进而通过将 \*content 覆写为某函数的 got (如 free/atoi )就可以 leak 出 libc 的地址，然后将改写为 system 的地址，控制参数即可 get shell
 
-关于extended chunk的介绍可以看这个**[slide](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/advanceheap-160113090848.pdf)**
+关于 extended chunk 的介绍可以看这个 **[slide](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/advanceheap-160113090848.pdf)**
 
 ```python
 lab13 [master●] cat solve.py 
@@ -938,6 +942,7 @@ if __name__ == "__main__":
 ```
 
 ### lab14-magicheap
+unsorted bin attack
 
 ```python
 #!/usr/bin/env python

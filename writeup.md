@@ -1,9 +1,18 @@
+---
+title: "HITCON-Training-Writeup"
+date: 2018-07-03T12:05:10+08:00
+draft: false
+---
+
+
 # HITCON-Training-Writeup
 
 > ~~原文链接[M4x@10.0.0.55](http://www.cnblogs.com/WangAoBo/p/8570640.html)~~
-> 原文链接[M4x@10.0.0.55](https://github.com/0x01f/HITCON-Training-Writeup)
+
+> 原文链接[M4x@10.0.0.55](http://m4x.fun/post/hitcon-training-writeup/)
 
 > 项目地址[M4x's github](https://github.com/0x01f/HITCON-Training-Writeup)，欢迎 star~
+
 
 复习一下二进制基础，写写 HITCON-Training 的 writeup，题目地址：https://github.com/scwuaptx/HITCON-Training
 
@@ -192,7 +201,7 @@ lab3 [master●●]
 
 ### lab4-ret2lib
 
-ret2libc，并且程序中已经有了一个可以查看 got 表中值的函数 See\_something，直接 leak 出 libcBase，通过 one\_gadget 或者 system("/bin/sh") 都可以 get shell，/bin/sh 可以使用 libc 中的字符串，可以通过 read 读入到内存中，也可以使用 binary 中的字符串
+ret2libc，并且程序中已经有了一个可以查看 got 表中值的函数 See\_something，直接 leak 出 libc 基址，通过 one\_gadget 或者 system("/bin/sh") 都可以 get shell，/bin/sh 可以使用 libc 中的字符串，可以通过 read 读入到内存中，也可以使用 binary 中的字符串
 
 ```python
 lab4 [master●●] cat solve.py 
@@ -224,7 +233,7 @@ lab4 [master●●]
 
 ### lab5-simplerop
 
-本来看程序是静态链接的，想通过 ROPgadget/ropper 等工具生成的 ropchain 一波带走，但实际操作时发现 read 函数只允许读入100个字符，去除 buf 到 main 函数返回地址的偏移为 32，我们一共有 100 - 32 = 68 的长度来构造 ropchain，而 ropper/ROPgadget 等自动生成的 ropchain 都大于这个长度，这就需要我们精心设计 ropchain 了，这里偷个懒，优化一下 ropper 生成的 ropchain 来缩短长度
+本来看程序是静态链接的，想通过 ROPgadget/ropper 等工具生成的 ropchain 一波带走，但实际操作时发现 read 函数只允许读入 100 个字符，去除 buf 到 main 函数返回地址的偏移为 32，我们一共有 100 - 32 = 68 的长度来构造 ropchain，而 ropper/ROPgadget 等自动生成的 ropchain 都大于这个长度，这就需要我们精心设计 ropchain 了，这里偷个懒，优化一下 ropper 生成的 ropchain 来缩短长度
 
 > ropper --file ./simplerop --chain "execve cmd=/bin/sh"
 >
@@ -272,7 +281,8 @@ print rop
 [INFO] rop chain generated!
 ```
 
-简单介绍一下原理，通过一系列 pop|ret 等gadget，使得 eax = 0xb（execve 32 位下的系统调用号），ebx -> /bin/sh， ecx = edx = 0，然后通过 `int 0x80` 实现系统调用，执行 execve("/bin/sh", 0, 0)，hackme.inndy 上也有一道类似的题目[**ROP2**](http://www.cnblogs.com/WangAoBo/p/7706719.html#_label3)
+简单介绍一下原理，通过一系列 pop|ret 等gadget，使得 eax = 0xb（execve 32 位下的系统调用号），ebx -> /bin/sh， ecx = edx = 0，然后通过 `int 0x80` 实现系统调用，执行 execve("/bin/sh", 0, 0)，实际上构造了一个 ret2syscall 的rop chain, hackme.inndy 上也有一道类似的题目[**ROP2**](http://www.cnblogs.com/WangAoBo/p/7706719.html#_label3)
+> ret2syscall 的更多细节可以参考 [ctf-wiki](https://ctf-wiki.github.io/ctf-wiki/pwn/stackoverflow/basic_rop/#ret2syscall)
 
 而当观察 ropper 等工具自动生成的 ropchain 时，会发现有很多步骤是很繁琐的，可以做出很多优化，给一个优化后的例子
 
@@ -402,7 +412,7 @@ io.close()
 
 ### lab6-migration
 
- 栈迁移的问题，可以看出这个题目比起暴力的栈溢出做了两点限制：
+栈迁移的问题，可以看出这个题目比起暴力的栈溢出做了两点限制：
 
 - 每次溢出只有 0x40-0x28-0x4=**20** 个字节的长度可以构造 ropchain
 
@@ -413,9 +423,10 @@ io.close()
       exit(1);
   ```
 
-  限制了我们只能利用一次 main 函数的溢出
+限制了我们只能利用一次 main 函数的溢出（如果能 leak 出栈地址的话, 可以在栈上构造 rop chain 并控制返回地址 ret 到栈上的 rop chain)
 
-所以我们就只能通过 20 个字节的 ropchain 来进行 rop 了，关于栈迁移（又称为 stack-pivot）可以看这个 [**slide**](https://github.com/M4xW4n9/slides/blob/master/pwn_stack/DEP%20%26%20ROP.pdf%0A), 在 [ctf-wiki](https://ctf-wiki.github.io/ctf-wiki/pwn/stackoverflow/others/#stack-pivoting) 上对 stack-pivot 也有很清楚的介绍
+所以我们就只能通过 20 个字节的 ropchain 来进行 rop 了，关于栈迁移（又称为 stack-pivot）可以看这个 [**slide**](https://github.com/M4xW4n9/slides/blob/master/pwn_stack/DEP%20%26%20ROP.pdf%0A)
+> [ctf-wiki](https://ctf-wiki.github.io/ctf-wiki/pwn/stackoverflow/others/#stack-pivoting) 上对 stack pivot 也有较为详细的介绍
 
 ![stackPivot](https://raw.githubusercontent.com/M4xW4n9/slides/master/pwn_stack/stackPivot.jpg)
 
@@ -472,7 +483,7 @@ io.interactive()
 io.close()
 ```
 
-稍微解释一下，先通过主函数中可以控制的 20 个字节将 esp 指针劫持到可控的 bss 段，然后就可以为所欲为了。
+稍微解释一下，先通过主函数中可以控制的 20个 字节将 esp 指针劫持到可控的 bss 段，然后就可以可以在 bss 段为所欲为了。
 
 关于 stack-pivot，pwnable.kr 的 simple\_login 是很经典的题目，放上一篇这道题的很不错的 [**wp**](https://blog.csdn.net/yuanyunfeng3/article/details/51456049)
 
@@ -481,7 +492,7 @@ io.close()
 
 ### lab7-crack
 
-输出 name 时有明显的格式化字符串漏洞，这个题的思路有很多，可以利用 fsb 改写 password，或者 leak 出 password，也可以直接通过 fsb，hijack puts\_got 到 system("cat flag") 处（注意此处 printf 实际调用了 puts）
+输出 name 时有明显的格式化字符串漏洞，这个题的思路有很多，可以利用 fsb 改写 password，或者 leak 出 password，也可以直接通过 fsb，hijack puts\_got 到 system("cat flag") 处（注意这里 printf 实际调用了 puts）
 
 ```python
 lab7 [master●●] cat hijack.py 
@@ -876,11 +887,11 @@ io.interactive()
 io.close()
 ```
 
-> 可以通过设置标记变量(如我 exp 中的 11111111, 22222222 等)进行定位
+> 可以通过设置标记变量(如我 exp 中的 11111111, 22222222 等)进行输入输出的定位
 
 ### lab10-hacknote
 
-最简单的一种 uaf 利用，结构体中有函数指针，通过 uaf 控制该函数指针指向 magic 函数即可，uaf 的介绍可以看这个 [**slide**](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/malloc-150821074656-lva1-app6891.pdf)
+最简单的一种 fastbin uaf 利用，结构体中有函数指针，通过 uaf 控制该函数指针指向 magic 函数即可，uaf 的介绍可以看这个 [**slide**](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/malloc-150821074656-lva1-app6891.pdf)
 
 exp:
 
@@ -939,7 +950,7 @@ if __name__ == "__main__":
 >
 > 识别出结构体的具体结构后
 >
-> - shift + F1, insert 插入识别出的结果
+> - shift+F1, insert 插入识别出的结果
 >
 >   ![](http://ww1.sinaimg.cn/large/006AWYXBly1fq30oi6hn6j30qt0hgjsc.jpg)
 >
@@ -957,7 +968,7 @@ if __name__ == "__main__":
 
 ### lab11-bamboobox
 
-可以种 house of force，也可以使用 unlink，先说 house of force 的方法
+可以种 house of force，也可以使用 unsafe unlink，先说 house of force 的方法
 
 #### house of force
 
@@ -1014,7 +1025,7 @@ if __name__ == "__main__":
 
 #### unlink
 
-至于 unlink，在这个 [slide](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/malloc-150821074656-lva1-app6891.pdf)中有较大篇幅的介绍，就不再说明原理了. 需要说明的一点是在最近的几次比赛中经常见到 off-by-one null 经常与 unlink 连用, 通过 off-by-one null 修改下一个 chunk 的 size, 通过精心布局的 chunk 来 leak got 和修改 got, 这几乎也成了一种固定的套路
+至于 unlink，在这个 [slide](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/malloc-150821074656-lva1-app6891.pdf) 中有较大篇幅的介绍，就不在说明原理了
 
 ```python
 lab11 [master●] cat unlink.py 
@@ -1090,7 +1101,7 @@ if __name__ == "__main__":
 
 ### lab12-secretgarden
 
-通过 double free 实现 fastbin attack 的题目，所谓double free，指的就是对同一个 allocated chunk free 两次，这样就可以形成一个类似 **0  -> 1 -> 0** 的 cycled bin list，这样当我们 malloc 出 0 时，就可以修改 bin list 中 0 的 fd，如 **1 -> 0 -> target**，这样只要我们再 malloc 三次，并通过 malloc 的检查，就可以实现 malloc 到任何地址，进而实现任意地址写，至于 double free 的检查怎么绕过可以看这个[slide](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/advanceheap-160113090848.pdf)
+通过 double free 实现 fastbin attack 的题目，所谓 double free，指的就是对同一个 allocated chunk free 两次，这样就可以形成一个类似 **0  -> 1 -> 0** 的 cycled fastbin list，这样当我们 malloc 出 0 时，就可以修改 fastbin list 中 0 的 fd，如 **1 -> 0 -> target**，这样只要我们再 malloc 三次，并通过 malloc 的检查，就可以实现 malloc 到任何地址，进而实现任意地址写，至于 double free 的检查怎么绕过可以看这个 [slide](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/advanceheap-160113090848.pdf)
 
 ```python
 #!/usr/bin/env python
@@ -1144,14 +1155,14 @@ if __name__ == "__main__":
 
 ```
 
-> 以上的 exp 实现了通过 fastbin attack 来修改 got, 实际上通过 fastbin attack 来修改 \_\_malloc\_hook, \_\_realloc\_hook, \_\_free\_hook, IO\_file\_plus 结构体中的 jump\_table 也是很常见的做法, 尤其是程序开了 Full Relro 保护时
-> pwnable.tw 的 Secret Garden 一题就用到了以上几种做法, 可以参考这篇 [writeup](http://tacxingxing.com/2018/02/20/pwnabletw-secretgarden/)
-> pwndbg 有一个寻找 fastbin 可行地址的功能, 但不是太好用, 我借鉴了 [veritas501](https://veritas501.space/2018/03/27/调教pwndbg/) 师傅的代码, 完成了一个快速寻找, 在我 fork 的 [Pwngdb](https://github.com/0x01f/Pwngdb) 也添加了这一功能
+- 以上的 exp 实现了通过 fastbin attack 来修改 got, 实际上通过 fastbin attack 来修改 \_\_malloc\_hook, \_\_realloc\_hook, \_\_free\_hook, IO\_file\_plus 结构体中的 jump\_table 也是很常见的做法, 尤其是程序开了 Full Relro 保护时
+- pwnable.tw 的 Secret Garden 一题就用到了以上几种做法, 可以参考这篇 [writeup](http://tacxingxing.com/2018/02/20/pwnabletw-secretgarden/)
+- 参考了 [veritas501](https://veritas501.space/2018/03/27/调教pwndbg/) 师傅的文章, 我在我的 [fork](https://github.com/0x01f/Pwngdb) 里也加入了快速利用 fastbin attack 的函数 fake\_fastbin\_all
 
 
 ### lab13-heapcreator
 
-在 edit\_heap 中有一个故意留下来的 off-by-one，并且不是 off-by-one null byte，因此可以使用 extended chunk 这种技巧造成 overlapping chunk，进而通过将 \*content 覆写为某函数的 got (如 free/atoi )就可以 leak 出 libc 的地址，然后将改写为 system 的地址，控制参数即可 get shell
+在 edit\_heap 中有一个故意留下来的 off-by-one，并且不是 off-by-one null byte，因此我们就可以有很大自由度地控制下一个 chunk 的 size, 可以使用 extended chunk 这种技巧造成 overlapping chunk，进而通过将 \*content 覆写为某函数的 got (如 free/atoi) 就可以 leak 出 libc 的地址，然后再改写为 system 的地址，控制参数即可 get shell
 
 关于 extended chunk 的介绍可以看这个 **[slide](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/advanceheap-160113090848.pdf)**
 
@@ -1210,7 +1221,37 @@ if __name__ == "__main__":
 ```
 
 ### lab14-magicheap
-unsorted bin attack
+在 edit\_heap() 里有 arbitrary overflow, 我们最终要达到的目的是修改全局变量 magic > 4869, 可以考虑使用 unsorted bin attack 这一技巧
+unsorted bin attack 的结果是向任一地址写一个不可控的大数(unsorted bin list 的地址), 看起来比较局限, 但在某些情境下还是很有用的:
+
+- 修改 global\_max\_fast 为一个较大的数, 这样根据 malloc 的源码
+```C
+/*
+   If the size qualifies as a fastbin, first check corresponding bin.
+   This code is safe to execute even if av is not yet initialized, so we
+   can try it without checking, which saves some time on this fast path.
+*/
+if ((unsigned long) (nb) <= (unsigned long) (get_max_fast ()))
+ {
+   idx = fastbin_index (nb);
+   mfastbinptr *fb = &fastbin (av, idx);
+   mchunkptr pp = *fb;
+    .....
+```
+更大的 chunk 也可以被视为 fastbin, fastbin attack 的利用范围就大了很多
+
+- 往某一地址上写值, 比如可以在 \_\_free\_hook 前的某一地址上写入一个大数(0x7f\*\*\*\*\*\*\*\*\*\*)来满足 fastbin attack 的条件(提供 fastbin 的 size)
+
+unsorted bin attack 的原理也很简单, unsorted bin 的自己实现了 unlink 的功能, 没有使用宏定义
+```C
+          bck = victim->bk;
+          ......
+          /* remove from unsorted list */
+          unsorted_chunks (av)->bk = bck;
+          bck->fd = unsorted_chunks (av);
+
+```
+可以看出, 如果我们能控制 unsorted bin 的bk 为地址 target - 16, 那么在 bck -> fd = unsorted\_chunks(av) 这一步时, target 就会被写入 unsorted bin 的地址. 但同时也要注意此时 unsorted bin list 已经被破坏, 下次再有 unsorted bin 的操作就会引起 crash
 
 ```python
 #!/usr/bin/env python
@@ -1268,8 +1309,9 @@ if __name__ == "__main__":
 ```
 
 ### lab15-zoo
-[pwn in C++](https://github.com/M4xW4n9/slides/blob/master/pwn_others/pwnincplusplus-160217120850.pdf)
-'''python
+C++ 的 pwn 题, 这道题目没有开 NX, 也就是说可以使用 shellcode, 在 Dog::Dog, Cat::Cat 这些函数里也有很明显的通过 strcpy 实现 overflow 的漏洞, 因此这一题就可以通过溢出伪造虚表, 控制虚表指针指向 shellcode 地址来 get shell
+更多 C++ pwn 的内容可以看这个 [slide](https://github.com/M4xW4n9/slides/blob/master/pwn_others/pwnincplusplus-160217120850.pdf), 内容虽然有点老了, 但很经典
+```python
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 __Auther__ = 'M4x'
@@ -1308,4 +1350,5 @@ if __name__ == "__main__":
 
     io.interactive()
     io.close()
-'''
+```
+

